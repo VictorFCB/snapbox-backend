@@ -1,0 +1,130 @@
+# Logs
+logs/
+*.log
+*.out
+*.err
+*.pid
+*.swp
+nohup.out
+uvicorn.log  # Logs do Uvicorn
+daphne.log  # Logs do Daphne
+daphne_error.log  # Erros do Daphne
+ 
+# Django
+*.pyc
+*.pyo
+__pycache__/
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+static/
+.env
+*.env
+config/settings/local.py
+config/settings/local/
+config/settings/.env
+venv/
+env/
+ 
+# Banco de Dados
+pgdata/
+postgres_data/
+ 
+# Dependências
+node_modules/
+/.pnp
+.pnp.js
+ 
+# Testes
+/coverage
+.pytest_cache/
+ 
+# Produção
+.env.dev
+.env.prod   
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+ 
+# Ignore Django migrations compilados
+**/migrations/*.pyc
+**/migrations/__pycache__/
+ 
+# Arquivos compilados
+*.pyc
+*.pyo
+*.pyd
+*.so
+ 
+# Ambientes virtuais
+venv/
+env/
+.venv/
+ 
+# Arquivos de editor/IDE
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*.swn
+*.bak
+ 
+# Cache do pip
+pip-log.txt
+pip-delete-this-directory.txt
+ 
+# Relatórios de cobertura de testes
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+ 
+# Arquivos do Docker
+docker-compose.override.yml
+.dockerignore
+.docker/
+docker-sync.yml
+.env.docker
+.env.db
+ 
+# Dependências Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+ 
+# Dumps de banco de dados
+*.sql
+*.sqlite3
+ 
+# Logs do Celery
+celerybeat-schedule
+celerybeat.pid
+ 
+# Logs do Gunicorn
+gunicorn_error.log
+ 
+# Chaves SSH locais
+*.pem
+*.key
+ 
+# Arquivos temporários e específicos de SO
+*.swp
+*.swo
+*.swn
+*.bak
+.DS_Store
+Thumbs.db
+ 
+#redis
+/redis_data/
+redis_data/dump.rdb
+/redis_data/dump.rdb
