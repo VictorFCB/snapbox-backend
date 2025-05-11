@@ -11,7 +11,7 @@ import bcrypt from 'bcryptjs';
 dotenv.config({ path: '.env.dev' });
 
 const app = express();
-const PORT = process.env.PORT || 3010;
+const PORT = process.env.PORT;
 const BUCKET_NAME = 'images';
 
 app.use(cors({ origin: process.env.FRONTEND_URL}));
