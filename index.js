@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import nodemailer from 'nodemailer';
 import supabase from './supabase.js';
 import dotenv from 'dotenv';
-import bcrypt from 'bcryptjs';
 
 
 dotenv.config({ path: '.env.dev' });
@@ -26,22 +25,19 @@ app.post('/login', async (req, res) => {
   }
 
   try {
-    // Tente usar a função de login do Supabase para autenticação
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
 
     if (error) {
-      // Se houver erro no login, retorne o erro para o cliente
       return res.status(401).json({ error: 'Email ou senha incorretos.' });
     }
 
-    // Se o login for bem-sucedido, retorne a sessão e os dados do usuário
     res.status(200).json({
       message: 'Login bem-sucedido!',
-      session: data.session,  // Retorne a sessão aqui
-      user: data.user,        // Retorne os dados do usuário
+      session: data.session,  
+      user: data.user,       
     });
   } catch (error) {
     console.error('Erro ao autenticar usuário:', error);
