@@ -5,7 +5,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copiar os arquivos de package.json e package-lock.json para o container
-COPY ./package.json ./package-lock.json ./
+COPY /package.json /package-lock.json ./
 
 # Instalar as dependências
 RUN npm install
