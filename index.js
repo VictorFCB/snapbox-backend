@@ -154,6 +154,31 @@ app.get('/url-performance/:urlId', async (req, res) => {
     });
   }
 });
+
+// Rota para registrar cliques nas URLs
+app.post('/track-click', async (req, res) => {
+  const { urlId, sessionId, deviceType, referrer } = req.body;
+
+  try {
+    // Registrar o clique no banco de dados
+    const { data, error } = await supabase
+      .from('url_clicks')
+      .insert([{
+        url_id: urlId,
+        session_id: sessionId || uuidv4(), // Gera um novo ID se não fornecido
+        device_type: deviceType || 'other',
+        referrer: referrer || 'direct',
+        click_time: new Date().toISOString()
+      }]);
+
+    if (error) throw error;
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao registrar clique' });
+  }
+});
+
 // Rota para adicionar um admin
 app.post('/add-admin', async (req, res) => {
   const { email } = req.body;
