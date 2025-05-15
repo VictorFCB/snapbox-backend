@@ -52,6 +52,108 @@ const upload = multer({
   }
 });
 
+app.get('/url-performance/:urlId', async (req, res) => {
+  const { urlId } = req.params;
+  const { start_date, end_date } = req.query;
+
+  console.log(`Iniciando consulta para URL ID: ${urlId}`);
+
+  try {
+    // 1. Verificar se a URL existe
+    const { data: url, error: urlError } = await supabase
+      .from('urls_snapbox')
+      .select('id')
+      .eq('id', urlId)
+      .single();
+
+    if (urlError || !url) {
+      console.log('URL não encontrada:', urlError);
+      return res.status(404).json({ error: "URL não encontrada" });
+    }
+
+    // 2. Consultar cliques
+    let clicksQuery = supabase
+      .from('url_clicks')
+      .select('*', { count: 'exact' })
+      .eq('url_id', urlId);
+
+    // 3. Consultar visitantes únicos
+    let uniqueQuery = supabase
+      .from('url_clicks')
+      .select('session_id', { count: 'exact', distinct: true })
+      .eq('url_id', urlId);
+
+    // Aplicar filtros de data
+    if (start_date) {
+      clicksQuery = clicksQuery.gte('click_time', start_date);
+      uniqueQuery = uniqueQuery.gte('click_time', start_date);
+    }
+    if (end_date) {
+      clicksQuery = clicksQuery.lte('click_time', end_date);
+      uniqueQuery = uniqueQuery.lte('click_time', end_date);
+    }
+
+    // Executar consultas em paralelo
+    const [
+      { count: totalClicks, error: clicksError },
+      { count: uniqueVisitors, error: uniqueError },
+      { data: devicesData, error: devicesError }
+    ] = await Promise.all([
+      clicksQuery,
+      uniqueQuery,
+      supabase
+        .from('url_clicks')
+        .select('device_type')
+        .eq('url_id', urlId)
+    ]);
+
+    // Verificar erros
+    const errors = [clicksError, uniqueError, devicesError].filter(Boolean);
+    if (errors.length > 0) {
+      console.error('Erros nas consultas:', errors);
+      throw new Error("Erro ao buscar dados de cliques");
+    }
+
+    // 4. Consultar conversões (se aplicável)
+    let conversionsData = [];
+    try {
+      const { data, error } = await supabase
+        .from('url_conversions')
+        .select('*')
+        .eq('url_id', urlId);
+      
+      if (!error) conversionsData = data;
+    } catch (e) {
+      console.log('Ignorando erros de conversão:', e.message);
+    }
+
+    // 5. Formatar resposta
+    const response = {
+      success: true,
+      total_clicks: totalClicks || 0,
+      unique_visitors: uniqueVisitors || 0,
+      conversion_rate: totalClicks > 0 
+        ? parseFloat(((conversionsData.length / totalClicks) * 100).toFixed(1))
+        : 0,
+      devices: {
+        desktop: devicesData.filter(d => d.device_type === 'desktop').length,
+        mobile: devicesData.filter(d => d.device_type === 'mobile').length,
+        tablet: devicesData.filter(d => d.device_type === 'tablet').length,
+        other: devicesData.filter(d => !d.device_type || d.device_type === 'other').length
+      }
+    };
+
+    console.log('Consulta concluída com sucesso');
+    return res.json(response);
+
+  } catch (error) {
+    console.error('Erro no endpoint:', error);
+    return res.status(500).json({ 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
 // Rota para adicionar um admin
 app.post('/add-admin', async (req, res) => {
   const { email } = req.body;
@@ -72,7 +174,6 @@ app.post('/add-admin', async (req, res) => {
 
   res.status(200).json({ success: true, data });
 });
-
 
 app.post('/logout', async (req, res) => {
   const { email, most_viewed_path } = req.body;
@@ -219,7 +320,6 @@ app.post('/verify-code', async (req, res) => {
     });
   }
 });
-
 
 app.post('/send-verification-code', async (req, res) => {
   const { email } = req.body;
@@ -390,6 +490,109 @@ app.put('/urls/:id', async (req, res) => {
   }
 });
 
+app.get('/url-performance/:urlId', async (req, res) => {
+  const { urlId } = req.params;
+  const { start_date, end_date } = req.query;
+
+  console.log(`Iniciando consulta para URL ID: ${urlId}`);
+
+  try {
+    // 1. Verificar se a URL existe
+    const { data: url, error: urlError } = await supabase
+      .from('urls_snapbox')
+      .select('id')
+      .eq('id', urlId)
+      .single();
+
+    if (urlError || !url) {
+      console.log('URL não encontrada:', urlError);
+      return res.status(404).json({ error: "URL não encontrada" });
+    }
+
+    // 2. Consultar cliques
+    let clicksQuery = supabase
+      .from('url_clicks')
+      .select('*', { count: 'exact' })
+      .eq('url_id', urlId);
+
+    // 3. Consultar visitantes únicos
+    let uniqueQuery = supabase
+      .from('url_clicks')
+      .select('session_id', { count: 'exact', distinct: true })
+      .eq('url_id', urlId);
+
+    // Aplicar filtros de data
+    if (start_date) {
+      clicksQuery = clicksQuery.gte('click_time', start_date);
+      uniqueQuery = uniqueQuery.gte('click_time', start_date);
+    }
+    if (end_date) {
+      clicksQuery = clicksQuery.lte('click_time', end_date);
+      uniqueQuery = uniqueQuery.lte('click_time', end_date);
+    }
+
+    // Executar consultas em paralelo
+    const [
+      { count: totalClicks, error: clicksError },
+      { count: uniqueVisitors, error: uniqueError },
+      { data: devicesData, error: devicesError }
+    ] = await Promise.all([
+      clicksQuery,
+      uniqueQuery,
+      supabase
+        .from('url_clicks')
+        .select('device_type')
+        .eq('url_id', urlId)
+    ]);
+
+    // Verificar erros
+    const errors = [clicksError, uniqueError, devicesError].filter(Boolean);
+    if (errors.length > 0) {
+      console.error('Erros nas consultas:', errors);
+      throw new Error("Erro ao buscar dados de cliques");
+    }
+
+    // 4. Consultar conversões (se aplicável)
+    let conversionsData = [];
+    try {
+      const { data, error } = await supabase
+        .from('url_conversions')
+        .select('*')
+        .eq('url_id', urlId);
+      
+      if (!error) conversionsData = data;
+    } catch (e) {
+      console.log('Ignorando erros de conversão:', e.message);
+    }
+
+    // 5. Formatar resposta
+    const response = {
+      success: true,
+      total_clicks: totalClicks || 0,
+      unique_visitors: uniqueVisitors || 0,
+      conversion_rate: totalClicks > 0 
+        ? parseFloat(((conversionsData.length / totalClicks) * 100).toFixed(1))
+        : 0,
+      devices: {
+        desktop: devicesData.filter(d => d.device_type === 'desktop').length,
+        mobile: devicesData.filter(d => d.device_type === 'mobile').length,
+        tablet: devicesData.filter(d => d.device_type === 'tablet').length,
+        other: devicesData.filter(d => !d.device_type || d.device_type === 'other').length
+      }
+    };
+
+    console.log('Consulta concluída com sucesso');
+    return res.json(response);
+
+  } catch (error) {
+    console.error('Erro no endpoint:', error);
+    return res.status(500).json({ 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // Rota para buscar URLs salvas
 app.get('/urls', async (req, res) => {
   try {
@@ -423,7 +626,6 @@ app.delete('/urls/:id', async (req, res) => {
 
   res.status(200).json({ success: true });
 });
-
 
 // Listar arquivos
 app.get('/files', async (req, res) => {
